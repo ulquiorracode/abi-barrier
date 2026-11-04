@@ -66,6 +66,7 @@ pub fn expand_barrier(attr: TokenStream, item: TokenStream) -> Result<TokenStrea
     let fn_output = &fn_sig.output;
     let fn_body = &item_fn.block;
     let fn_attrs = &item_fn.attrs;
+    let fn_unsafety = &fn_sig.unsafety;
 
     let fn_name_str = fn_ident.to_string();
 
@@ -126,15 +127,14 @@ pub fn expand_barrier(attr: TokenStream, item: TokenStream) -> Result<TokenStrea
 
     let expanded = quote! {
         #(#fn_attrs)*
-        #[unsafe(no_mangle)]
-        #fn_vis extern #abi_str fn #fn_ident(#fn_args) #fn_output {
+        #fn_vis #fn_unsafety extern #abi_str fn #fn_ident(#fn_args) #fn_output {
             #[inline(always)]
-            fn #inner_fn_ident(#fn_args) #fn_output {
+            #fn_unsafety fn #inner_fn_ident(#fn_args) #fn_output {
                 #fn_body
             }
 
             match #core_path::catch_panic_barrier(#fn_name_str, #on_panic_expr, move || {
-                #inner_fn_ident(#(#arg_names),*)
+                unsafe { #inner_fn_ident(#(#arg_names),*) }
             }) {
                 Ok(val) => val,
                 Err(err) => {
