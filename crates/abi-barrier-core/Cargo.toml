@@ -1,0 +1,19 @@
+[package]
+name = "abi-barrier-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Core #![no_std] primitives, Closed-World enums, and zero-allocation C-ABI safe boundaries"
+keywords.workspace = true
+categories.workspace = true
+
+[features]
+default = ["std"]
+std = []
+stitch = ["dep:stitch-core"]
+
+[dependencies]
+stitch-core = { workspace = true, optional = true }
