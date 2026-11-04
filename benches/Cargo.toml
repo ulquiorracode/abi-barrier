@@ -1,0 +1,19 @@
+[package]
+name = "abi-barrier-benches"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+publish = false
+
+[dependencies]
+abi-barrier = { workspace = true }
+criterion = { workspace = true }
+
+[lib]
+path = "src/lib.rs"
+
+[[bench]]
+name = "barrier_bench"
+path = "benches/barrier_bench.rs"
+harness = false

@@ -1,0 +1,25 @@
+[package]
+name = "abi-barrier"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Universal, Zero-Cost & Unbreakable C-ABI Safe Boundary and FFI Barrier for Rust"
+keywords.workspace = true
+categories.workspace = true
+readme = "README.md"
+
+[features]
+default = ["std", "derive", "stitch"]
+std = ["abi-barrier-core/std"]
+derive = ["dep:abi-barrier-derive"]
+stitch = ["abi-barrier-core/stitch"]
+
+[dependencies]
+abi-barrier-core = { workspace = true }
+abi-barrier-derive = { workspace = true, optional = true }
+
+[dev-dependencies]
+stitch-core = { workspace = true }
