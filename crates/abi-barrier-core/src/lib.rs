@@ -1,6 +1,4 @@
-//! # ABI Barrier Core (`abi-barrier-core`)
-//!
-//! Unbreakable, zero-allocation C-ABI safety boundary and panic isolation kernel.
+//! Core `#![no_std]` runtime primitives, error types, and panic barrier logic.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -26,6 +24,9 @@ pub use return_value::AbiReturn;
 pub use stitch_layer::AbiBarrierLayer;
 
 #[cfg(feature = "std")]
+use std::io::Write;
+
+#[cfg(feature = "std")]
 /// Catches unhandled Rust panics at the C-ABI boundary, preventing undefined behavior (UB).
 ///
 /// If a panic occurs, this function logs the panic diagnostic and executes the specified
@@ -37,18 +38,28 @@ pub fn catch_panic_barrier<R, F>(
     f: F,
 ) -> Result<R, AbiError>
 where
-    F: FnOnce() -> R + std::panic::UnwindSafe,
+    F: FnOnce() -> R,
 {
-    match std::panic::catch_unwind(f) {
+    match std::panic::catch_unwind(std::panic::AssertUnwindSafe(f)) {
         Ok(ret) => Ok(ret),
         Err(panic_payload) => {
-            // Anti-silent suppression: log panic details explicitly
+            // Anti-silent suppression: log panic details explicitly without panicking on closed stderr
+            let mut stderr = std::io::stderr().lock();
             if let Some(s) = panic_payload.downcast_ref::<&str>() {
-                std::eprintln!("[ABI_BARRIER_PANIC] Caught panic in `{}`: {}", fn_name, s);
+                let _ = writeln!(
+                    stderr,
+                    "[ABI_BARRIER_PANIC] Caught panic in `{}`: {}",
+                    fn_name, s
+                );
             } else if let Some(s) = panic_payload.downcast_ref::<std::string::String>() {
-                std::eprintln!("[ABI_BARRIER_PANIC] Caught panic in `{}`: {}", fn_name, s);
+                let _ = writeln!(
+                    stderr,
+                    "[ABI_BARRIER_PANIC] Caught panic in `{}`: {}",
+                    fn_name, s
+                );
             } else {
-                std::eprintln!(
+                let _ = writeln!(
+                    stderr,
                     "[ABI_BARRIER_PANIC] Caught non-string panic in `{}`",
                     fn_name
                 );
@@ -63,7 +74,12 @@ where
                     reason: "rust panic caught at abi barrier",
                 }),
                 PanicStrategy::ReturnError(code) => Err(AbiError::ErrorCode(code)),
-                PanicStrategy::Custom(handler) => Err(AbiError::CustomHandled(handler(fn_name))),
+                PanicStrategy::Custom(handler) => {
+                    let custom_code =
+                        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| handler(fn_name)))
+                            .unwrap_or(-1);
+                    Err(AbiError::CustomHandled(custom_code))
+                }
             }
         }
     }

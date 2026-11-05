@@ -125,6 +125,17 @@ pub fn expand_barrier(attr: TokenStream, item: TokenStream) -> Result<TokenStrea
         }
     }
 
+    let inner_call = if fn_unsafety.is_some() {
+        quote! {
+            // SAFETY: Outer FFI barrier entry point delegates to inner unsafe function
+            unsafe { #inner_fn_ident(#(#arg_names),*) }
+        }
+    } else {
+        quote! {
+            #inner_fn_ident(#(#arg_names),*)
+        }
+    };
+
     let expanded = quote! {
         #(#fn_attrs)*
         #fn_vis #fn_unsafety extern #abi_str fn #fn_ident(#fn_args) #fn_output {
@@ -133,12 +144,13 @@ pub fn expand_barrier(attr: TokenStream, item: TokenStream) -> Result<TokenStrea
                 #fn_body
             }
 
-            match #core_path::catch_panic_barrier(#fn_name_str, #on_panic_expr, move || {
-                unsafe { #inner_fn_ident(#(#arg_names),*) }
+            let __strategy = #on_panic_expr;
+            match #core_path::catch_panic_barrier(#fn_name_str, __strategy, move || {
+                #inner_call
             }) {
                 Ok(val) => val,
                 Err(err) => {
-                    #core_path::AbiReturn::from_panic_error(#on_panic_expr, err)
+                    #core_path::AbiReturn::from_panic_error(__strategy, err)
                 }
             }
         }

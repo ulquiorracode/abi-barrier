@@ -16,12 +16,9 @@ impl AbiReturn for () {
 
 impl AbiReturn for bool {
     #[inline(always)]
-    fn from_panic_error(_strategy: PanicStrategy, err: AbiError) -> Self {
-        match err {
-            AbiError::ErrorCode(code) => code != 0,
-            AbiError::CustomHandled(code) => code != 0,
-            _ => false,
-        }
+    fn from_panic_error(_strategy: PanicStrategy, _err: AbiError) -> Self {
+        // In C-ABI, panics or barrier errors must strictly never indicate success (true).
+        false
     }
 }
 
@@ -32,8 +29,22 @@ macro_rules! impl_abi_return_int {
                 #[inline(always)]
                 fn from_panic_error(_strategy: PanicStrategy, err: AbiError) -> Self {
                     match err {
-                        AbiError::ErrorCode(code) => code as $t,
-                        AbiError::CustomHandled(code) => code as $t,
+                        AbiError::ErrorCode(code) => {
+                            let truncated = code as $t;
+                            if truncated == 0 && code != 0 {
+                                (-1i32) as $t
+                            } else {
+                                truncated
+                            }
+                        }
+                        AbiError::CustomHandled(code) => {
+                            let truncated = code as $t;
+                            if truncated == 0 && code != 0 {
+                                (-1i32) as $t
+                            } else {
+                                truncated
+                            }
+                        }
                         _ => 0,
                     }
                 }

@@ -5,6 +5,11 @@
 pub enum AbiError {
     /// A required pointer argument was null.
     NullPointer { argument: &'static str },
+    /// A pointer argument was not properly aligned for target type.
+    UnalignedPointer {
+        argument: &'static str,
+        alignment: usize,
+    },
     /// A raw C-string was not valid UTF-8.
     InvalidUtf8 { argument: &'static str },
     /// A panic was caught at the FFI boundary.
@@ -24,6 +29,15 @@ impl std::fmt::Display for AbiError {
         match self {
             Self::NullPointer { argument } => {
                 write!(f, "null pointer passed for argument `{argument}`")
+            }
+            Self::UnalignedPointer {
+                argument,
+                alignment,
+            } => {
+                write!(
+                    f,
+                    "unaligned pointer passed for argument `{argument}` (requires {alignment}-byte alignment)"
+                )
             }
             Self::InvalidUtf8 { argument } => {
                 write!(f, "invalid UTF-8 in C-string argument `{argument}`")
