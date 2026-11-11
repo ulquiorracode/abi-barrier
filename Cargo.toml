@@ -23,7 +23,7 @@ abi-barrier-derive = { path = "crates/abi-barrier-derive", version = "0.1.0" }
 abi-barrier = { path = "crates/abi-barrier", version = "0.1.0" }
 
 stitch-core = { git = "https://github.com/stitch-rs/stitch-framework.git", branch = "main", default-features = false }
-syn = { version = "2.0", features = ["full", "extra-traits"] }
+syn = { version = "3.0", features = ["full", "extra-traits"] }
 quote = "1.0"
 proc-macro2 = "1.0"
 criterion = "0.8"
