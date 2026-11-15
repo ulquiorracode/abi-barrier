@@ -8,12 +8,17 @@ extern crate self as abi_barrier;
 
 #[doc(hidden)]
 pub use abi_barrier_core as __core;
-pub use abi_barrier_core as core;
+pub use abi_barrier_core as barrier_core;
 
 pub use abi_barrier_core::{
     AbiError, AbiReturn, CallingConvention, PanicStrategy, catch_panic_barrier, ensure_non_null,
     ensure_valid_c_str,
 };
+
+#[cfg(feature = "builder")]
+pub use abi_barrier_core::BarrierBuilder;
+#[cfg(all(feature = "builder", feature = "stitch"))]
+pub use abi_barrier_core::AbiBarrierLayerBuilder;
 
 #[cfg(feature = "stitch")]
 pub use abi_barrier_core::AbiBarrierLayer;
@@ -27,6 +32,11 @@ pub mod prelude {
         AbiError, AbiReturn, CallingConvention, PanicStrategy, catch_panic_barrier,
         ensure_non_null, ensure_valid_c_str,
     };
+
+    #[cfg(feature = "builder")]
+    pub use abi_barrier_core::BarrierBuilder;
+    #[cfg(all(feature = "builder", feature = "stitch"))]
+    pub use abi_barrier_core::AbiBarrierLayerBuilder;
 
     #[cfg(feature = "stitch")]
     pub use abi_barrier_core::AbiBarrierLayer;

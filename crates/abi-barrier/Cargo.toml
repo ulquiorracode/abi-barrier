@@ -12,8 +12,9 @@ categories.workspace = true
 readme = "README.md"
 
 [features]
-default = ["std", "derive", "stitch"]
+default = ["std", "derive", "builder", "stitch"]
 std = ["abi-barrier-core/std"]
+builder = ["abi-barrier-core/builder"]
 derive = ["dep:abi-barrier-derive"]
 stitch = ["abi-barrier-core/stitch"]
 
