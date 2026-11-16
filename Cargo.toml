@@ -8,7 +8,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.85.0"
 authors = ["UlquiorraCode Contributors", "GoldSrc Architecture Team"]
@@ -18,9 +18,9 @@ keywords = ["ffi", "c-abi", "safety", "barrier", "zero-cost"]
 categories = ["rust-patterns", "api-bindings", "no-std"]
 
 [workspace.dependencies]
-abi-barrier-core = { path = "crates/abi-barrier-core", version = "0.1.0" }
-abi-barrier-derive = { path = "crates/abi-barrier-derive", version = "0.1.0" }
-abi-barrier = { path = "crates/abi-barrier", version = "0.1.0" }
+abi-barrier-core = { path = "crates/abi-barrier-core", version = "0.2.0" }
+abi-barrier-derive = { path = "crates/abi-barrier-derive", version = "0.2.0" }
+abi-barrier = { path = "crates/abi-barrier", version = "0.2.0" }
 
 stitch-core = { git = "https://github.com/stitch-rs/stitch-framework.git", branch = "main", default-features = false }
 syn = { version = "2.0", features = ["full", "extra-traits"] }
