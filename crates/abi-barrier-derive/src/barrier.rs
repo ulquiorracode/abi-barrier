@@ -66,7 +66,8 @@ pub fn expand_barrier(attr: TokenStream, item: TokenStream) -> Result<TokenStrea
     let fn_output = &fn_sig.output;
     let fn_body = &item_fn.block;
     let fn_attrs = &item_fn.attrs;
-    let fn_unsafety = &fn_sig.unsafety;
+    let fn_unsafety = &fn_sig.safety;
+    let is_unsafe = matches!(fn_unsafety, syn::Safety::Unsafe(_));
 
     let fn_name_str = fn_ident.to_string();
 
@@ -125,7 +126,7 @@ pub fn expand_barrier(attr: TokenStream, item: TokenStream) -> Result<TokenStrea
         }
     }
 
-    let inner_call = if fn_unsafety.is_some() {
+    let inner_call = if is_unsafe {
         quote! {
             // SAFETY: Outer FFI barrier entry point delegates to inner unsafe function
             unsafe { #inner_fn_ident(#(#arg_names),*) }
