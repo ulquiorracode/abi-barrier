@@ -15,10 +15,10 @@ pub use abi_barrier_core::{
     ensure_valid_c_str,
 };
 
-#[cfg(feature = "builder")]
-pub use abi_barrier_core::BarrierBuilder;
 #[cfg(all(feature = "builder", feature = "stitch"))]
 pub use abi_barrier_core::AbiBarrierLayerBuilder;
+#[cfg(feature = "builder")]
+pub use abi_barrier_core::BarrierBuilder;
 
 #[cfg(feature = "stitch")]
 pub use abi_barrier_core::AbiBarrierLayer;
@@ -33,10 +33,10 @@ pub mod prelude {
         ensure_non_null, ensure_valid_c_str,
     };
 
-    #[cfg(feature = "builder")]
-    pub use abi_barrier_core::BarrierBuilder;
     #[cfg(all(feature = "builder", feature = "stitch"))]
     pub use abi_barrier_core::AbiBarrierLayerBuilder;
+    #[cfg(feature = "builder")]
+    pub use abi_barrier_core::BarrierBuilder;
 
     #[cfg(feature = "stitch")]
     pub use abi_barrier_core::AbiBarrierLayer;

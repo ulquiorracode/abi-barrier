@@ -23,10 +23,10 @@ pub use panic_strategy::PanicStrategy;
 pub use ptr::{ensure_non_null, ensure_valid_c_str};
 pub use return_value::AbiReturn;
 
-#[cfg(feature = "builder")]
-pub use builder::BarrierBuilder;
 #[cfg(all(feature = "builder", feature = "stitch"))]
 pub use builder::AbiBarrierLayerBuilder;
+#[cfg(feature = "builder")]
+pub use builder::BarrierBuilder;
 
 #[cfg(feature = "stitch")]
 pub use stitch_layer::AbiBarrierLayer;
