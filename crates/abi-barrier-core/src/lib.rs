@@ -11,6 +11,9 @@ pub mod panic_strategy;
 pub mod ptr;
 pub mod return_value;
 
+#[cfg(feature = "builder")]
+pub mod builder;
+
 #[cfg(feature = "stitch")]
 pub mod stitch_layer;
 
@@ -19,6 +22,11 @@ pub use error::AbiError;
 pub use panic_strategy::PanicStrategy;
 pub use ptr::{ensure_non_null, ensure_valid_c_str};
 pub use return_value::AbiReturn;
+
+#[cfg(all(feature = "builder", feature = "stitch"))]
+pub use builder::AbiBarrierLayerBuilder;
+#[cfg(feature = "builder")]
+pub use builder::BarrierBuilder;
 
 #[cfg(feature = "stitch")]
 pub use stitch_layer::AbiBarrierLayer;
