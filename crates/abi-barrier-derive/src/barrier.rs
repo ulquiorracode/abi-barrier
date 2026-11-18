@@ -76,7 +76,7 @@ pub fn expand_barrier(attr: TokenStream, item: TokenStream) -> Result<TokenStrea
     let on_panic_expr = if let Some(expr) = &args.on_panic {
         quote! { #expr }
     } else {
-        quote! { #core_path::PanicStrategy::ReturnDefault }
+        quote! { #core_path::PanicStrategy::ReturnError(-1) }
     };
 
     // Determine ABI string for `extern "..."`
@@ -92,7 +92,14 @@ pub fn expand_barrier(attr: TokenStream, item: TokenStream) -> Result<TokenStrea
             "Stdcall" => "stdcall",
             "Fastcall" => "fastcall",
             "System" => "system",
-            _ => "C",
+            other => {
+                return Err(syn::Error::new_spanned(
+                    path,
+                    format!(
+                        "unsupported calling convention `{other}`; expected one of: C, Cdecl, Stdcall, Fastcall, System"
+                    ),
+                ));
+            }
         }
     } else {
         "C"

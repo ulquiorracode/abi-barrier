@@ -22,17 +22,17 @@ impl AbiReturn for bool {
     }
 }
 
-macro_rules! impl_abi_return_int {
+macro_rules! impl_abi_return_signed_int {
     ($($t:ty),*) => {
         $(
             impl AbiReturn for $t {
                 #[inline(always)]
-                fn from_panic_error(_strategy: PanicStrategy, err: AbiError) -> Self {
+                fn from_panic_error(strategy: PanicStrategy, err: AbiError) -> Self {
                     match err {
                         AbiError::ErrorCode(code) => {
                             let truncated = code as $t;
                             if truncated == 0 && code != 0 {
-                                (-1i32) as $t
+                                -1
                             } else {
                                 truncated
                             }
@@ -40,12 +40,30 @@ macro_rules! impl_abi_return_int {
                         AbiError::CustomHandled(code) => {
                             let truncated = code as $t;
                             if truncated == 0 && code != 0 {
-                                (-1i32) as $t
+                                -1
                             } else {
                                 truncated
                             }
                         }
-                        _ => 0,
+                        _ => match strategy {
+                            PanicStrategy::ReturnDefault => 0,
+                            PanicStrategy::ReturnError(code) => {
+                                let truncated = code as $t;
+                                if truncated == 0 && code != 0 {
+                                    -1
+                                } else {
+                                    truncated
+                                }
+                            }
+                            PanicStrategy::Custom(f) => {
+                                let fn_name = match err {
+                                    AbiError::Panicked { function, .. } => function,
+                                    _ => "unknown",
+                                };
+                                f(fn_name) as $t
+                            }
+                            PanicStrategy::Abort => std::process::abort(),
+                        },
                     }
                 }
             }
@@ -53,7 +71,57 @@ macro_rules! impl_abi_return_int {
     };
 }
 
-impl_abi_return_int!(i8, u8, i16, u16, i32, u32, i64, u64, isize, usize);
+macro_rules! impl_abi_return_unsigned_int {
+    ($($t:ty),*) => {
+        $(
+            impl AbiReturn for $t {
+                #[inline(always)]
+                fn from_panic_error(strategy: PanicStrategy, err: AbiError) -> Self {
+                    match err {
+                        AbiError::ErrorCode(code) => {
+                            let truncated = code as $t;
+                            if truncated == 0 && code != 0 {
+                                !0
+                            } else {
+                                truncated
+                            }
+                        }
+                        AbiError::CustomHandled(code) => {
+                            let truncated = code as $t;
+                            if truncated == 0 && code != 0 {
+                                !0
+                            } else {
+                                truncated
+                            }
+                        }
+                        _ => match strategy {
+                            PanicStrategy::ReturnDefault => 0,
+                            PanicStrategy::ReturnError(code) => {
+                                let truncated = code as $t;
+                                if truncated == 0 && code != 0 {
+                                    !0
+                                } else {
+                                    truncated
+                                }
+                            }
+                            PanicStrategy::Custom(f) => {
+                                let fn_name = match err {
+                                    AbiError::Panicked { function, .. } => function,
+                                    _ => "unknown",
+                                };
+                                f(fn_name) as $t
+                            }
+                            PanicStrategy::Abort => std::process::abort(),
+                        },
+                    }
+                }
+            }
+        )*
+    };
+}
+
+impl_abi_return_signed_int!(i8, i16, i32, i64, isize);
+impl_abi_return_unsigned_int!(u8, u16, u32, u64, usize);
 
 impl AbiReturn for f32 {
     #[inline(always)]

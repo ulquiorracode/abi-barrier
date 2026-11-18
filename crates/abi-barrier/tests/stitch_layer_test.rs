@@ -56,3 +56,26 @@ fn test_abi_barrier_stitch_layer() {
     let res2 = pipeline.dispatch(&mut valid_ctx, 42);
     assert_eq!(res2, Ok(84));
 }
+
+#[test]
+fn test_abi_barrier_stitch_layer_validator_panic_caught() {
+    let barrier_layer = AbiBarrierLayer::new(
+        |_ctx: &mut MockContext, _intent: &i32| -> Result<(), AbiError> {
+            panic!("unhandled validation exception");
+        },
+        |abi_err: AbiError, _ctx: &mut MockContext| -> &'static str {
+            match abi_err {
+                AbiError::Panicked { .. } => "caught validator panic",
+                _ => "other error",
+            }
+        },
+        PanicStrategy::ReturnDefault,
+    );
+
+    let mut pipeline = Pipeline::on_terminal(EngineTerminal).wrap(barrier_layer);
+    let mut ctx = MockContext {
+        is_client_connected: true,
+    };
+    let res = pipeline.dispatch(&mut ctx, 42);
+    assert_eq!(res, Err("caught validator panic"));
+}

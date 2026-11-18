@@ -76,6 +76,16 @@ fn test_barrier_catches_panic_and_delegates_to_custom() {
     assert_eq!(safe_custom_fn(true), -999);
 }
 
+#[barrier]
+fn unadorned_panicking_fn() -> i32 {
+    panic!("unadorned panic");
+}
+
+#[test]
+fn test_barrier_default_panic_returns_negative_one() {
+    assert_eq!(unadorned_panicking_fn(), -1);
+}
+
 #[test]
 fn test_barrier_returns_null_pointer_on_panic() {
     assert_eq!(safe_get_pointer(false), 0x1234 as *mut u8);
