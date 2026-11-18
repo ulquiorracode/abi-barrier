@@ -7,8 +7,8 @@ use stitch_core::middleware::Layer;
 
 /// An SMA middleware layer that guards the entry and exit of a pipeline against C-ABI violations.
 ///
-/// - `on_enter`: Validates context pointer invariants before descent.
-/// - `on_exit`: Catches errors, logs failures, and maps them to safe C-ABI return codes.
+/// - `on_enter`: Validates context pointer invariants before descent, catching any validator panics.
+/// - `on_exit`: Enforces the total function ascent contract (zero-cost pass-through, no panics).
 pub struct AbiBarrierLayer<V, F> {
     validator: V,
     error_mapper: F,
@@ -35,10 +35,23 @@ where
 {
     #[inline(always)]
     fn on_enter(&self, ctx: &mut TCtx, intent: TIntent) -> FlowControl<TIntent, TOutcome, TErr> {
-        match (self.validator)(ctx, &intent) {
-            Ok(()) => FlowControl::Proceed(intent),
-            Err(abi_err) => {
+        let res = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            (self.validator)(ctx, &intent)
+        }));
+        match res {
+            Ok(Ok(())) => FlowControl::Proceed(intent),
+            Ok(Err(abi_err)) => {
                 let mapped_err = (self.error_mapper)(abi_err, ctx);
+                FlowControl::Halt(mapped_err)
+            }
+            Err(_panic) => {
+                let mapped_err = (self.error_mapper)(
+                    AbiError::Panicked {
+                        function: "on_enter validator",
+                        reason: "panic caught during validator execution",
+                    },
+                    ctx,
+                );
                 FlowControl::Halt(mapped_err)
             }
         }

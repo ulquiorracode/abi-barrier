@@ -24,3 +24,11 @@ abi-barrier-derive = { workspace = true, optional = true }
 
 [dev-dependencies]
 stitch-core = { workspace = true }
+
+[[test]]
+name = "barrier_integration_test"
+required-features = ["derive", "std"]
+
+[[test]]
+name = "stitch_layer_test"
+required-features = ["stitch", "std"]
